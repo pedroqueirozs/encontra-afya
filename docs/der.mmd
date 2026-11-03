@@ -1,0 +1,107 @@
+erDiagram
+    pessoa ||--o| funcionario_responsavel : "pode ser"
+    pessoa ||--o{ ocorrencia : "registra"
+    pessoa ||--o{ tentativa_identificacao : "é contatada em"
+    pessoa ||--o{ devolucao : "recebe"
+    categoria ||--o{ objeto : "classifica"
+    objeto ||--o{ ocorrencia : "aparece em"
+    local ||--o{ ocorrencia : "sedia"
+    ocorrencia ||--o{ tentativa_identificacao : "gera"
+    ocorrencia ||--o{ correspondencia : "é a encontrada em"
+    ocorrencia ||--o{ correspondencia : "é a perdida em"
+    ocorrencia ||--o| devolucao : "termina em"
+    ocorrencia ||--o{ historico_status : "tem"
+    funcionario_responsavel |o--o{ correspondencia : "analisa"
+    funcionario_responsavel ||--o{ devolucao : "registra"
+    funcionario_responsavel ||--o{ historico_status : "altera"
+
+    pessoa {
+        INT id_pessoa PK
+        VARCHAR nome
+        VARCHAR email UK
+        VARCHAR matricula UK
+        VARCHAR telefone "NULL"
+        VARCHAR tipo_pessoa
+        CHAR status "DEFAULT A"
+        DATETIME data_cadastro "DEFAULT CURRENT_TIMESTAMP"
+    }
+
+    funcionario_responsavel {
+        INT id_funcionario PK
+        INT id_pessoa FK,UK
+        VARCHAR setor
+        VARCHAR cargo
+        DATE data_inicio
+    }
+
+    categoria {
+        INT id_categoria PK
+        VARCHAR nome UK
+        VARCHAR descricao
+    }
+
+    local {
+        INT id_local PK
+        VARCHAR nome
+        VARCHAR bloco
+        VARCHAR andar
+        VARCHAR descricao
+    }
+
+    objeto {
+        INT id_objeto PK
+        VARCHAR nome
+        VARCHAR descricao
+        VARCHAR cor
+        VARCHAR marca
+        INT id_categoria FK
+    }
+
+    ocorrencia {
+        INT id_ocorrencia PK
+        VARCHAR tipo
+        DATE data_ocorrencia
+        VARCHAR descricao
+        VARCHAR status "DEFAULT ABERTO"
+        INT id_objeto FK
+        INT id_pessoa FK
+        INT id_local FK
+        DATETIME data_registro "DEFAULT CURRENT_TIMESTAMP"
+    }
+
+    tentativa_identificacao {
+        INT id_tentativa PK
+        INT id_ocorrencia FK
+        INT id_pessoa FK
+        DATETIME data_tentativa
+        VARCHAR meio_contato
+        VARCHAR resultado
+        VARCHAR observacao
+    }
+
+    correspondencia {
+        INT id_correspondencia PK
+        INT id_ocorrencia_encontrada FK,UK
+        INT id_ocorrencia_perdida FK,UK
+        DATE data_analise
+        VARCHAR situacao "DEFAULT PENDENTE"
+        INT id_funcionario FK "NULL"
+    }
+
+    devolucao {
+        INT id_devolucao PK
+        INT id_ocorrencia FK,UK
+        INT id_funcionario FK
+        INT id_pessoa_recebedor FK
+        DATE data_devolucao
+        VARCHAR observacao
+    }
+
+    historico_status {
+        INT id_historico PK
+        INT id_ocorrencia FK
+        INT id_funcionario FK
+        VARCHAR status_anterior
+        VARCHAR status_novo
+        DATETIME data_alteracao "DEFAULT CURRENT_TIMESTAMP"
+    }
