@@ -37,23 +37,23 @@ erDiagram
     categoria {
         INT id_categoria PK
         VARCHAR nome UK
-        VARCHAR descricao
+        VARCHAR descricao "NULL"
     }
 
     local {
         INT id_local PK
         VARCHAR nome
-        VARCHAR bloco
-        VARCHAR andar
-        VARCHAR descricao
+        VARCHAR bloco "NULL"
+        VARCHAR andar "NULL"
+        VARCHAR descricao "NULL"
     }
 
     objeto {
         INT id_objeto PK
         VARCHAR nome
         VARCHAR descricao
-        VARCHAR cor
-        VARCHAR marca
+        VARCHAR cor "NULL"
+        VARCHAR marca "NULL"
         INT id_categoria FK
     }
 
@@ -76,14 +76,14 @@ erDiagram
         DATETIME data_tentativa
         VARCHAR meio_contato
         VARCHAR resultado
-        VARCHAR observacao
+        VARCHAR observacao "NULL"
     }
 
     correspondencia {
         INT id_correspondencia PK
         INT id_ocorrencia_encontrada FK,UK
         INT id_ocorrencia_perdida FK,UK
-        DATE data_analise
+        DATE data_analise "NULL"
         VARCHAR situacao "DEFAULT PENDENTE"
         INT id_funcionario FK "NULL"
     }
@@ -94,7 +94,7 @@ erDiagram
         INT id_funcionario FK
         INT id_pessoa_recebedor FK
         DATE data_devolucao
-        VARCHAR observacao
+        VARCHAR observacao "NULL"
     }
 
     historico_status {
