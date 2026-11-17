@@ -1,13 +1,7 @@
--- EncontraAFYA: Sistema Universitário de Achados e Perdidos
--- Requer MySQL 8.0.16 ou superior, pois versões anteriores não aplicam CHECK.
-
 CREATE DATABASE encontraafya
   CHARACTER SET utf8mb4;
 
 USE encontraafya;
-
--- As tabelas seguem a ordem das dependências: uma tabela só pode ter FK
--- para outra que já exista.
 
 CREATE TABLE pessoa (
   id_pessoa     INT          AUTO_INCREMENT PRIMARY KEY,
@@ -26,8 +20,6 @@ CREATE TABLE pessoa (
     CHECK (status IN ('A', 'I'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- O UNIQUE em id_pessoa transforma a relação em 1:1: uma pessoa só pode ter
--- um cadastro de funcionário responsável.
 CREATE TABLE funcionario_responsavel (
   id_funcionario INT         AUTO_INCREMENT PRIMARY KEY,
   id_pessoa      INT         NOT NULL,
@@ -47,7 +39,6 @@ CREATE TABLE categoria (
   CONSTRAINT uq_categoria_nome UNIQUE (nome)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- bloco e andar aceitam NULL porque há locais fora dos blocos, como o estacionamento.
 CREATE TABLE local (
   id_local  INT          AUTO_INCREMENT PRIMARY KEY,
   nome      VARCHAR(80)  NOT NULL,
@@ -68,8 +59,6 @@ CREATE TABLE objeto (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- status guarda a situação atual para consulta rápida; historico_status guarda
--- a trilha das mudanças.
 CREATE TABLE ocorrencia (
   id_ocorrencia   INT          AUTO_INCREMENT PRIMARY KEY,
   tipo            VARCHAR(20)  NOT NULL,
@@ -95,8 +84,6 @@ CREATE TABLE ocorrencia (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Relação N:N entre ocorrencia e pessoa.
--- ON DELETE CASCADE: uma tentativa não existe sem a ocorrência.
 CREATE TABLE tentativa_identificacao (
   id_tentativa   INT          AUTO_INCREMENT PRIMARY KEY,
   id_ocorrencia  INT          NOT NULL,
@@ -117,12 +104,7 @@ CREATE TABLE tentativa_identificacao (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Relação N:N de ocorrencia com ela mesma.
--- O UNIQUE é composto: o par não se repete, mas cada ocorrência pode aparecer
--- em vários pares.
--- As duas FKs de ocorrência usam ON UPDATE RESTRICT porque as colunas fazem
--- parte de um CHECK, e o MySQL não aceita ON UPDATE CASCADE nesse caso (erro 3823).
--- O CHECK não consulta outras tabelas, então não verifica o tipo das ocorrências.
+-- ON UPDATE RESTRICT: o MySQL não aceita CASCADE em colunas usadas em CHECK (erro 3823).
 CREATE TABLE correspondencia (
   id_correspondencia       INT         AUTO_INCREMENT PRIMARY KEY,
   id_ocorrencia_encontrada INT         NOT NULL,
@@ -147,9 +129,6 @@ CREATE TABLE correspondencia (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- O UNIQUE em id_ocorrencia transforma a relação em 1:1: uma ocorrência tem no
--- máximo uma devolução.
--- id_funcionario aponta para funcionario_responsavel para garantir a RN08.
 CREATE TABLE devolucao (
   id_devolucao        INT          AUTO_INCREMENT PRIMARY KEY,
   id_ocorrencia       INT          NOT NULL,
@@ -169,7 +148,6 @@ CREATE TABLE devolucao (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Relação N:N entre ocorrencia e funcionario_responsavel.
 CREATE TABLE historico_status (
   id_historico    INT         AUTO_INCREMENT PRIMARY KEY,
   id_ocorrencia   INT         NOT NULL,
@@ -192,9 +170,6 @@ CREATE TABLE historico_status (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Povoamento
--- Os IDs são informados explicitamente para facilitar a leitura das FKs.
--- As colunas com DEFAULT de data também são informadas; sem isso, todos os
--- registros ficariam com a data em que o script foi executado.
 
 INSERT INTO pessoa (id_pessoa, nome, email, matricula, telefone, tipo_pessoa, status, data_cadastro) VALUES
   (1,  'Ana Beatriz Souza',          'ana.souza@aluno.afya.edu.br',          '202410157', '(31) 98741-2201', 'ALUNO',       'A', '2026-02-03 09:12:00'),
@@ -349,9 +324,6 @@ INSERT INTO objeto (id_objeto, nome, descricao, cor, marca, id_categoria) VALUES
   (34, 'Cachecol',               'Cachecol de lã listrado',                      'Vermelho',     NULL,            5),
   (35, 'Óculos de proteção',     'Óculos de segurança para laboratório',         'Incolor',      '3M',            15);
 
--- Em cada devolução confirmada, as ocorrências de PERDIDO e ENCONTRADO
--- apontam para o mesmo objeto. A de ENCONTRADO fica DEVOLVIDO e a de PERDIDO
--- fica ENCERRADO.
 INSERT INTO ocorrencia (id_ocorrencia, tipo, data_ocorrencia, descricao, status, id_objeto, id_pessoa, id_local, data_registro) VALUES
   (1,  'PERDIDO',    '2026-08-05', 'Celular esquecido na mesa durante o almoço',       'ENCERRADO',  1,  1,  3,  '2026-08-05 14:20:00'),
   (2,  'ENCONTRADO', '2026-08-05', 'Celular encontrado na mesa próxima ao caixa',      'DEVOLVIDO',  1,  54, 3,  '2026-08-05 15:05:00'),
@@ -436,7 +408,6 @@ INSERT INTO tentativa_identificacao (id_tentativa, id_ocorrencia, id_pessoa, dat
   (29, 39, 20, '2026-10-29 09:00:00', 'WHATSAPP',   'CONFIRMADO',     NULL),
   (30, 40, 7,  '2026-10-31 11:00:00', 'EMAIL',      'SEM_RESPOSTA',   NULL);
 
--- Correspondências PENDENTES ainda não foram analisadas: ficam sem data e sem analista.
 INSERT INTO correspondencia (id_correspondencia, id_ocorrencia_encontrada, id_ocorrencia_perdida, data_analise, situacao, id_funcionario) VALUES
   (1,  2,  1,  '2026-08-06', 'CONFIRMADA', 1),
   (2,  4,  3,  '2026-08-08', 'CONFIRMADA', 3),
@@ -478,8 +449,6 @@ INSERT INTO devolucao (id_devolucao, id_ocorrencia, id_funcionario, id_pessoa_re
   (16, 34, 8,  5,  '2026-10-22', 'Nome bordado conferido'),
   (17, 39, 6,  20, '2026-10-30', NULL);
 
--- Cada linha registra uma mudança de status. A última mudança de cada
--- ocorrência corresponde ao status atual gravado em ocorrencia.
 INSERT INTO historico_status (id_historico, id_ocorrencia, id_funcionario, status_anterior, status_novo, data_alteracao) VALUES
   (1,  2,  1,  'ABERTO',     'EM_ANALISE', '2026-08-06 09:00:00'),
   (2,  1,  1,  'ABERTO',     'EM_ANALISE', '2026-08-06 09:05:00'),

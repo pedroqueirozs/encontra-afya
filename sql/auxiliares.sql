@@ -1,13 +1,6 @@
--- EncontraAFYA: scripts auxiliares
--- Executar depois de sql/encontraafya.sql.
-
 USE encontraafya;
 
--- Trigger: correspondência sempre liga um ENCONTRADO a um PERDIDO.
--- Um CHECK não resolve essa regra, porque o tipo fica em outra tabela
--- (ocorrencia) e o CHECK do MySQL não consulta outras tabelas.
--- DELIMITER troca o fim de comando para // enquanto o trigger é criado;
--- sem isso, o primeiro ; dentro do BEGIN ... END encerraria o comando.
+-- Impede correspondência que não ligue uma ocorrência ENCONTRADO a uma PERDIDO.
 DELIMITER //
 
 CREATE TRIGGER trg_correspondencia_tipos
@@ -33,7 +26,7 @@ END //
 
 DELIMITER ;
 
--- Conferência do banco: quantidade de registros por tabela.
+-- Conferência: quantidade de registros por tabela.
 SELECT 'pessoa' AS tabela, COUNT(*) AS registros FROM pessoa
 UNION ALL SELECT 'funcionario_responsavel', COUNT(*) FROM funcionario_responsavel
 UNION ALL SELECT 'categoria', COUNT(*) FROM categoria
